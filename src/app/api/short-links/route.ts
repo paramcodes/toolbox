@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createCode, normalizeUrl, sanitizeCode } from "@/lib/short-links";
+import { auth } from "@clerk/nextjs/server";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,14 @@ function toResponseLink(link: {
 }
 
 export async function GET() {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const links = await prisma.shortLink.findMany({
+    where: { userId },
     orderBy: { createdAt: "desc" },
     take: 8,
   });
@@ -35,6 +43,12 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body = (await request.json()) as {
     longUrl?: string;
     customCode?: string;
@@ -55,6 +69,7 @@ export async function POST(request: NextRequest) {
       data: {
         code,
         longUrl: normalizedUrl,
+        userId,
       },
     });
 

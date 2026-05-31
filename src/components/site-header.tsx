@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { categories, getToolsByCategory } from "@/data/tools";
+import { SignInButton, Show, UserButton } from "@clerk/nextjs";
 
 export function SiteHeader() {
   return (
@@ -41,9 +42,16 @@ export function SiteHeader() {
         <Link href="/tools">All tools</Link>
       </nav>
 
-      <Link className="header-cta" href="/tools">
-        Browse
-      </Link>
+      <div className="flex items-center gap-4">
+        <Show when="signed-out">
+          <SignInButton mode="modal">
+            <button className="header-cta">Sign In</button>
+          </SignInButton>
+        </Show>
+        <Show when="signed-in">
+          <UserButton showName />
+        </Show>
+      </div>
     </header>
   );
 }
